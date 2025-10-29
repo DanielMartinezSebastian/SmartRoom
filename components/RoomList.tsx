@@ -230,21 +230,29 @@ export default function RoomList({ initialRooms }: RoomListProps) {
                   </div>
                 </div>
 
-                <div className="flex gap-2 pt-4">
-                  <button
-                    onClick={() => openEditModal(room)}
-                    disabled={loading}
-                    className="flex-1 rounded-lg border-2 border-blue-600 px-3 py-2 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-700"
+                <div className="space-y-2 pt-4">
+                  <a
+                    href={`/dashboard/rooms/${room.id}`}
+                    className="block w-full rounded-lg border-2 border-green-600 px-3 py-2 text-center text-sm font-semibold text-green-600 transition-colors hover:bg-green-50 dark:hover:bg-gray-700"
                   >
-                    Edit
-                  </button>
-                  <button
-                    onClick={() => handleDelete(room.id, room.name)}
-                    disabled={loading}
-                    className="flex-1 rounded-lg border-2 border-red-600 px-3 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-700"
-                  >
-                    Delete
-                  </button>
+                    Manage Products
+                  </a>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => openEditModal(room)}
+                      disabled={loading}
+                      className="flex-1 rounded-lg border-2 border-blue-600 px-3 py-2 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-700"
+                    >
+                      Edit
+                    </button>
+                    <button
+                      onClick={() => handleDelete(room.id, room.name)}
+                      disabled={loading}
+                      className="flex-1 rounded-lg border-2 border-red-600 px-3 py-2 text-sm font-semibold text-red-600 transition-colors hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-700"
+                    >
+                      Delete
+                    </button>
+                  </div>
                 </div>
               </div>
             </AnimatedCard>
