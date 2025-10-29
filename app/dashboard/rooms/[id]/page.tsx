@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import RoomProductManager from '@/components/RoomProductManager';
 
 export default async function RoomProductsPage({
@@ -52,12 +53,12 @@ export default async function RoomProductsPage({
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <a
+        <Link
           href="/dashboard/rooms"
           className="text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300"
         >
           ← Back to Rooms
-        </a>
+        </Link>
       </div>
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">

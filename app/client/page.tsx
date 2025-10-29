@@ -54,7 +54,7 @@ export default async function ClientPage() {
             No Room Assigned
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
-            You haven't been assigned to a room yet. Please contact an administrator or worker.
+            You haven&apos;t been assigned to a room yet. Please contact an administrator or worker.
           </p>
         </AnimatedCard>
       </div>
