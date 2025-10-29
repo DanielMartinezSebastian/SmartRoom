@@ -249,7 +249,12 @@ export default function ProductList({ initialProducts }: ProductListProps) {
                   </div>
 
                   {product.description && (
-                    <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                    <p className="line-clamp-2 text-sm text-gray-600 dark:text-gray-400" style={{ 
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
+                      overflow: 'hidden'
+                    }}>
                       {product.description}
                     </p>
                   )}
