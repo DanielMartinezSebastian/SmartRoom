@@ -29,15 +29,6 @@ export default async function ClientPage() {
           },
         },
       },
-      Purchase: {
-        include: {
-          Product: true,
-        },
-        orderBy: {
-          createdAt: 'desc',
-        },
-        take: 5,
-      },
     },
   });
 
@@ -112,48 +103,16 @@ export default async function ClientPage() {
           </p>
         </AnimatedCard>
       ) : (
-        <>
-          <div>
-            <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
-              Available Products
-            </h2>
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {availableProducts.map((product: any, index: number) => (
-                <ProductCard key={product.id} product={product} index={index} />
-              ))}
-            </div>
+        <div>
+          <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
+            Available Products
+          </h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            {availableProducts.map((product: any, index: number) => (
+              <ProductCard key={product.id} product={product} index={index} />
+            ))}
           </div>
-        </>
-      )}
-
-      {dbUser.Purchase && dbUser.Purchase.length > 0 && (
-        <AnimatedCard delay={0.5}>
-          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-            <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
-              Recent Purchases
-            </h2>
-            <div className="space-y-3">
-              {dbUser.Purchase.map((purchase: any) => (
-                <div
-                  key={purchase.id}
-                  className="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-700"
-                >
-                  <div>
-                    <p className="font-medium text-gray-900 dark:text-white">
-                      {purchase.Product.name}
-                    </p>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
-                      Quantity: {purchase.quantity} • Status: {purchase.status}
-                    </p>
-                  </div>
-                  <p className="font-bold text-blue-600 dark:text-blue-400">
-                    €{purchase.totalPrice.toFixed(2)}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </AnimatedCard>
+        </div>
       )}
     </div>
   );
