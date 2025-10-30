@@ -80,12 +80,13 @@ export default function Navbar({ userRole, avatarUrl, userName, roomName }: Navb
                   </Link>
                 </>
               )}
-              {userRole === 'CLIENT' && (
+              {/* Show room link for any user with a room assigned */}
+              {roomName && (
                 <Link
                   href="/client"
                   className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
                 >
-                  {roomName || 'My Room'}
+                  {roomName}
                 </Link>
               )}
             </div>
@@ -198,13 +199,14 @@ export default function Navbar({ userRole, avatarUrl, userName, roomName }: Navb
                 </Link>
               </>
             )}
-            {userRole === 'CLIENT' && (
+            {/* Show room link for any user with a room assigned */}
+            {roomName && (
               <Link
                 href="/client"
                 className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                {roomName || 'My Room'}
+                {roomName}
               </Link>
             )}
           </div>

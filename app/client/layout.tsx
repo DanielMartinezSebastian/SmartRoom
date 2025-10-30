@@ -24,14 +24,14 @@ export default async function ClientLayout({ children }: { children: React.React
     },
   });
 
-  if (!dbUser || dbUser.role !== 'CLIENT') {
-    redirect('/dashboard');
+  if (!dbUser) {
+    redirect('/login');
   }
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <Navbar 
-        userRole="CLIENT" 
+        userRole={dbUser.role} 
         avatarUrl={dbUser.avatarUrl} 
         userName={dbUser.name}
         roomName={dbUser.Room?.name}

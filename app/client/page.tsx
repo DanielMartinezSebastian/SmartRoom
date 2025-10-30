@@ -32,8 +32,8 @@ export default async function ClientPage() {
     },
   });
 
-  if (!dbUser || dbUser.role !== 'CLIENT') {
-    redirect('/dashboard');
+  if (!dbUser) {
+    redirect('/login');
   }
 
   if (!dbUser.Room) {
