@@ -214,6 +214,22 @@ pnpm exec prisma migrate reset
 2. Disable email confirmation (for development)
 3. Try signing up again
 
+### Issue: "Invalid Reset Link" when resetting password
+**Solution:** Configure Redirect URLs in Supabase:
+1. Go to Supabase Dashboard → Authentication → URL Configuration
+2. Add these Redirect URLs:
+   - `http://localhost:3000/reset-password`
+   - `http://localhost:3001/reset-password`
+3. Try the reset password flow again
+4. Check browser console (F12) for detailed error messages
+
+### Issue: Reset password email not arriving
+**Solution:**
+1. Check spam folder
+2. Wait a few minutes (email can be delayed)
+3. Verify the email is registered in your system
+4. Check Supabase Dashboard → Authentication → Logs for errors
+
 ### Issue: "next-view-transitions" peer dependency warning
 **Solution:** This is expected (React 19 with package expecting React 18). Safe to ignore.
 

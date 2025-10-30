@@ -1,27 +1,57 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { Link } from 'next-view-transitions';
 import { createClient } from '@/lib/supabase/client';
 import { resetPasswordSchema, type ResetPasswordInput } from '@/lib/validations/auth';
 
 export default function ResetPasswordPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [formData, setFormData] = useState<ResetPasswordInput>({ password: '', confirmPassword: '' });
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [hasToken, setHasToken] = useState(false);
+  const [verifyingToken, setVerifyingToken] = useState(true);
+  const [hasValidToken, setHasValidToken] = useState(false);
 
   useEffect(() => {
-    // Check if we have a recovery token in the URL
-    const hashParams = new URLSearchParams(window.location.hash.substring(1));
-    const accessToken = hashParams.get('access_token');
-    const type = hashParams.get('type');
-    
-    setHasToken(!!(accessToken && type === 'recovery'));
-  }, []);
+    const verifyToken = async () => {
+      try {
+        // Check for code in query params (email link format)
+        const code = searchParams.get('code');
+        
+        if (code) {
+          const supabase = createClient();
+          
+          // Exchange the code for a session
+          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
+          
+          if (exchangeError) {
+            console.error('Error exchanging code:', exchangeError);
+            setHasValidToken(false);
+          } else {
+            setHasValidToken(true);
+          }
+        } else {
+          // Check if we have a recovery token in the hash (legacy format)
+          const hashParams = new URLSearchParams(window.location.hash.substring(1));
+          const accessToken = hashParams.get('access_token');
+          const type = hashParams.get('type');
+          
+          setHasValidToken(!!(accessToken && type === 'recovery'));
+        }
+      } catch (err) {
+        console.error('Token verification error:', err);
+        setHasValidToken(false);
+      } finally {
+        setVerifyingToken(false);
+      }
+    };
+
+    verifyToken();
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -32,6 +62,7 @@ export default function ResetPasswordPage() {
       const validated = resetPasswordSchema.parse(formData);
       const supabase = createClient();
       
+      // Update the user's password
       const { error: authError } = await supabase.auth.updateUser({
         password: validated.password,
       });
@@ -51,7 +82,20 @@ export default function ResetPasswordPage() {
     }
   };
 
-  if (!hasToken) {
+  if (verifyingToken) {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 dark:from-gray-900 dark:to-gray-800">
+        <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-xl dark:bg-gray-800">
+          <div className="text-center">
+            <div className="mb-4 inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-blue-600 border-r-transparent"></div>
+            <p className="text-gray-600 dark:text-gray-400">Verifying reset link...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!hasValidToken) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gradient-to-br from-blue-50 to-indigo-100 px-4 dark:from-gray-900 dark:to-gray-800">
         <div className="w-full max-w-md rounded-lg bg-white p-8 shadow-xl dark:bg-gray-800">
