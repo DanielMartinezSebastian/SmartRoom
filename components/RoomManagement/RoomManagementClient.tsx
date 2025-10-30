@@ -1,12 +1,13 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useEffect } from 'react';
 import {
   DndContext,
   DragOverlay,
   closestCorners,
   KeyboardSensor,
   PointerSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   DragStartEvent,
@@ -49,6 +50,7 @@ export default function RoomManagementClient({
   initialRooms,
   initialUnassignedUsers,
 }: RoomManagementClientProps) {
+  const [mounted, setMounted] = useState(false);
   const [rooms, setRooms] = useState<Room[]>(initialRooms);
   const [unassignedUsers, setUnassignedUsers] = useState<User[]>(initialUnassignedUsers);
   const [activeUser, setActiveUser] = useState<User | null>(null);
@@ -56,10 +58,21 @@ export default function RoomManagementClient({
   const [roleFilter, setRoleFilter] = useState<'ALL' | 'ADMIN' | 'WORKER' | 'CLIENT'>('ALL');
   const [roomFilter, setRoomFilter] = useState<'all' | 'available' | 'full'>('all');
 
+  // Ensure component only renders on client to avoid hydration errors with @dnd-kit
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
         distance: 8,
+      },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: {
+        delay: 150,
+        tolerance: 8,
       },
     }),
     useSensor(KeyboardSensor, {
@@ -248,35 +261,45 @@ export default function RoomManagementClient({
         onRoomFilterChange={setRoomFilter}
       />
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragEnd={handleDragEnd}
-      >
-        {/* Responsive container: column on mobile, wrapped grid on larger screens */}
-        <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:flex-wrap">
-          {/* Unassigned Users Column */}
-          <UnassignedUsers users={filteredUnassignedUsers} />
-
-          {/* Room Columns */}
-          {filteredRooms.map((room) => (
-            <RoomColumn key={room.id} room={room} users={room.User} />
-          ))}
-
-          {filteredRooms.length === 0 && roomFilter !== 'all' && (
-            <div className="flex w-full items-center justify-center p-8">
-              <p className="text-center text-sm text-gray-500 dark:text-gray-400 sm:text-base">
-                No rooms match the selected filter
-              </p>
+      {!mounted ? (
+        <div className="flex items-center justify-center p-8">
+          <div className="text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
+              <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
             </div>
-          )}
+          </div>
         </div>
+      ) : (
+        <DndContext
+          sensors={sensors}
+          collisionDetection={closestCorners}
+          onDragStart={handleDragStart}
+          onDragEnd={handleDragEnd}
+        >
+          {/* Responsive container: column on mobile, wrapped grid on larger screens */}
+          <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:flex-wrap">
+            {/* Unassigned Users Column */}
+            <UnassignedUsers users={filteredUnassignedUsers} />
 
-        <DragOverlay>
-          {activeUser ? <UserCard user={activeUser} isDragging /> : null}
-        </DragOverlay>
-      </DndContext>
+            {/* Room Columns */}
+            {filteredRooms.map((room) => (
+              <RoomColumn key={room.id} room={room} users={room.User} />
+            ))}
+
+            {filteredRooms.length === 0 && roomFilter !== 'all' && (
+              <div className="flex w-full items-center justify-center p-8">
+                <p className="text-center text-sm text-gray-500 dark:text-gray-400 sm:text-base">
+                  No rooms match the selected filter
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DragOverlay>
+            {activeUser ? <UserCard user={activeUser} isDragging /> : null}
+          </DragOverlay>
+        </DndContext>
+      )}
     </div>
   );
 }

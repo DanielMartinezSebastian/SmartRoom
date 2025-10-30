@@ -24,6 +24,7 @@ export default function UserCard({ user, isDragging = false }: UserCardProps) {
   const style = {
     transform: CSS.Transform.toString(transform),
     transition,
+    touchAction: 'none', // Critical for mobile drag & drop
   };
 
   const getRoleBadgeColor = (role: string) => {

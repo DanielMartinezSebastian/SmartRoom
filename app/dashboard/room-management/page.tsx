@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import { createClient } from '@/lib/supabase/server';
 import { redirect } from 'next/navigation';
+import { Suspense } from 'react';
 import RoomManagementClient from '@/components/RoomManagement/RoomManagementClient';
 
 export default async function RoomManagementPage() {
@@ -66,7 +67,18 @@ export default async function RoomManagementPage() {
         </p>
       </div>
 
-      <RoomManagementClient initialRooms={rooms} initialUnassignedUsers={unassignedUsers} />
+      <Suspense fallback={
+        <div className="flex items-center justify-center p-8">
+          <div className="text-center">
+            <div className="inline-block h-8 w-8 animate-spin rounded-full border-4 border-solid border-current border-r-transparent align-[-0.125em] motion-reduce:animate-[spin_1.5s_linear_infinite]" role="status">
+              <span className="!absolute !-m-px !h-px !w-px !overflow-hidden !whitespace-nowrap !border-0 !p-0 ![clip:rect(0,0,0,0)]">Loading...</span>
+            </div>
+            <p className="mt-2 text-sm text-gray-600 dark:text-gray-400">Loading room management...</p>
+          </div>
+        </div>
+      }>
+        <RoomManagementClient initialRooms={rooms} initialUnassignedUsers={unassignedUsers} />
+      </Suspense>
     </div>
   );
 }
