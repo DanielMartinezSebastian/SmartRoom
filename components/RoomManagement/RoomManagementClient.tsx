@@ -155,7 +155,7 @@ export default function RoomManagementClient({
       return;
     }
 
-    // Check if target room is at capacity
+    // Check if target room is at capacity (client-side validation)
     if (targetRoomId) {
       const targetRoom = rooms.find((r) => r.id === targetRoomId);
       if (targetRoom && targetRoom.User.length >= targetRoom.capacity) {
@@ -164,8 +164,49 @@ export default function RoomManagementClient({
       }
     }
 
+    // Store the previous state for rollback
+    const previousRooms = rooms;
+    const previousUnassignedUsers = unassignedUsers;
+
+    // OPTIMISTIC UPDATE: Update UI immediately
+    setRooms((prevRooms) => {
+      const newRooms = prevRooms.map((room) => ({
+        ...room,
+        User: room.User.filter((u) => u.id !== userId),
+      }));
+
+      if (targetRoomId) {
+        const targetRoom = newRooms.find((r) => r.id === targetRoomId);
+        const user =
+          unassignedUsers.find((u) => u.id === userId) ||
+          prevRooms.flatMap((r) => r.User).find((u) => u.id === userId);
+
+        if (targetRoom && user) {
+          targetRoom.User.push(user);
+        }
+      }
+
+      return newRooms;
+    });
+
+    setUnassignedUsers((prevUnassigned) => {
+      const newUnassigned = prevUnassigned.filter((u) => u.id !== userId);
+
+      if (!targetRoomId) {
+        const user =
+          prevUnassigned.find((u) => u.id === userId) ||
+          rooms.flatMap((r) => r.User).find((u) => u.id === userId);
+
+        if (user) {
+          newUnassigned.push(user);
+        }
+      }
+
+      return newUnassigned;
+    });
+
     try {
-      // Update via API
+      // Make API call after optimistic update
       const response = await fetch(`/api/users/${userId}/room`, {
         method: 'PATCH',
         headers: {
@@ -179,49 +220,17 @@ export default function RoomManagementClient({
         throw new Error(error.error || 'Failed to update room assignment');
       }
 
-      // Update local state
-      setRooms((prevRooms) => {
-        const newRooms = prevRooms.map((room) => ({
-          ...room,
-          User: room.User.filter((u) => u.id !== userId),
-        }));
-
-        if (targetRoomId) {
-          const targetRoom = newRooms.find((r) => r.id === targetRoomId);
-          const user =
-            unassignedUsers.find((u) => u.id === userId) ||
-            prevRooms.flatMap((r) => r.User).find((u) => u.id === userId);
-
-          if (targetRoom && user) {
-            targetRoom.User.push(user);
-          }
-        }
-
-        return newRooms;
-      });
-
-      setUnassignedUsers((prevUnassigned) => {
-        const newUnassigned = prevUnassigned.filter((u) => u.id !== userId);
-
-        if (!targetRoomId) {
-          const user =
-            prevUnassigned.find((u) => u.id === userId) ||
-            rooms.flatMap((r) => r.User).find((u) => u.id === userId);
-
-          if (user) {
-            newUnassigned.push(user);
-          }
-        }
-
-        return newUnassigned;
-      });
-
+      // Success: Show success message
       showSuccess(
         targetRoomId
           ? 'User assigned to room successfully'
           : 'User moved to unassigned successfully'
       );
     } catch (error) {
+      // Error: Rollback to previous state
+      setRooms(previousRooms);
+      setUnassignedUsers(previousUnassignedUsers);
+
       const errorMessage = error instanceof Error ? error.message : 'Failed to update room assignment';
       showError(errorMessage);
       console.error('Error updating room assignment:', error);
