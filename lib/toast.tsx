@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 export const showSuccess = (message: string) => {
   toast.success(message, {
     duration: 3000,
-    position: 'top-right',
+    position: 'bottom-right',
   });
 };
 
@@ -16,7 +16,7 @@ export const showSuccess = (message: string) => {
 export const showError = (message: string) => {
   toast.error(message, {
     duration: 4000,
-    position: 'top-right',
+    position: 'bottom-right',
   });
 };
 
@@ -26,7 +26,7 @@ export const showError = (message: string) => {
 export const showInfo = (message: string) => {
   toast(message, {
     duration: 3000,
-    position: 'top-right',
+    position: 'bottom-right',
     icon: 'ℹ️',
   });
 };
@@ -36,7 +36,7 @@ export const showInfo = (message: string) => {
  */
 export const showLoading = (message: string): string => {
   return toast.loading(message, {
-    position: 'top-right',
+    position: 'bottom-right',
   });
 };
 
@@ -158,7 +158,7 @@ export const withLoadingToast = async <T,>(
       error: messages.error,
     },
     {
-      position: 'top-right',
+      position: 'bottom-right',
     }
   );
 };
