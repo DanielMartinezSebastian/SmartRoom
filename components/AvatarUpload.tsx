@@ -54,7 +54,7 @@ export default function AvatarUpload({ userId, currentAvatarUrl, userRole, onSuc
       const filePath = `${fileName}`;
 
       // Upload to Supabase Storage
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('userAvatar')
         .upload(filePath, file, {
           cacheControl: '3600',
