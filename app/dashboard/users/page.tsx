@@ -21,31 +21,21 @@ export default async function UsersPage() {
     redirect('/dashboard');
   }
 
-  const [users, rooms] = await Promise.all([
-    prisma.user.findMany({
-      include: {
-        Room: true,
-        Purchase: {
-          include: {
-            Product: true,
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
-          take: 5,
+  const users = await prisma.user.findMany({
+    include: {
+      Room: true,
+      Purchase: {
+        include: {
+          Product: true,
         },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 5,
       },
-      orderBy: { createdAt: 'desc' },
-    }),
-    prisma.room.findMany({
-      where: { isActive: true },
-      select: {
-        id: true,
-        name: true,
-      },
-      orderBy: { name: 'asc' },
-    }),
-  ]);
+    },
+    orderBy: { createdAt: 'desc' },
+  });
 
   return (
     <div className="space-y-6">
@@ -55,7 +45,7 @@ export default async function UsersPage() {
           Manage users, roles, and room assignments
         </p>
       </div>
-      <UserList initialUsers={users} rooms={rooms} />
+      <UserList initialUsers={users} />
     </div>
   );
 }
