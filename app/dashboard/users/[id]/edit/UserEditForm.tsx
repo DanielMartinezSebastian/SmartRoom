@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { createClient } from '@/lib/supabase/client';
 import AnimatedCard from '@/components/AnimatedCard';
 import UserRoleSelector from '@/components/UserManagement/UserRoleSelector';
 import UserRoomAssignment from '@/components/UserManagement/UserRoomAssignment';
 import UserStats from '@/components/UserManagement/UserStats';
 import { formatDate } from '@/lib/utils';
-import { showError, showConfirm, showDestructiveConfirm, showLoading, updateToSuccess, updateToError } from '@/lib/toast';
+import { showError, showSuccess, showConfirm, showDestructiveConfirm, showLoading, updateToSuccess, updateToError } from '@/lib/toast';
 
 type User = {
   id: string;
@@ -53,24 +54,90 @@ interface UserEditFormProps {
 
 export default function UserEditForm({ user, rooms, currentUserId }: UserEditFormProps) {
   const router = useRouter();
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [role, setRole] = useState<'ADMIN' | 'WORKER' | 'CLIENT'>(user.role);
   const [roomId, setRoomId] = useState<string | null>(user.roomId);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(user.avatarUrl);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
 
   // Check if there are unsaved changes
-  const checkChanges = (newRole: typeof role, newRoomId: typeof roomId) => {
-    setHasChanges(newRole !== user.role || newRoomId !== user.roomId);
+  const checkChanges = (newRole: typeof role, newRoomId: typeof roomId, newAvatarUrl: typeof avatarUrl) => {
+    setHasChanges(newRole !== user.role || newRoomId !== user.roomId || newAvatarUrl !== user.avatarUrl);
   };
 
   const handleRoleChange = (newRole: 'ADMIN' | 'WORKER' | 'CLIENT') => {
     setRole(newRole);
-    checkChanges(newRole, roomId);
+    checkChanges(newRole, roomId, avatarUrl);
   };
 
   const handleRoomChange = (newRoomId: string | null) => {
     setRoomId(newRoomId);
-    checkChanges(role, newRoomId);
+    checkChanges(role, newRoomId, avatarUrl);
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/jpg'];
+    if (!allowedTypes.includes(file.type)) {
+      showError('Invalid file type. Please upload a JPG, PNG, or WebP image.');
+      return;
+    }
+
+    // Validate file size (2MB max)
+    const maxSize = 2 * 1024 * 1024;
+    if (file.size > maxSize) {
+      showError('File too large. Maximum size is 2MB.');
+      return;
+    }
+
+    const toastId = showLoading('Uploading avatar...');
+    setUploading(true);
+
+    try {
+      const supabase = createClient();
+
+      // Create unique filename
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+
+      // Upload to Supabase Storage
+      const { error: uploadError } = await supabase.storage
+        .from('userAvatar')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false,
+        });
+
+      if (uploadError) throw uploadError;
+
+      // Get public URL
+      const { data: { publicUrl } } = supabase.storage
+        .from('userAvatar')
+        .getPublicUrl(fileName);
+
+      setAvatarUrl(publicUrl);
+      checkChanges(role, roomId, publicUrl);
+      updateToSuccess(toastId, 'Avatar uploaded! Click Save to apply changes.');
+    } catch (err: any) {
+      updateToError(toastId, err.message || 'Failed to upload avatar');
+      console.error('Avatar upload error:', err);
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    const confirmed = await showDestructiveConfirm('Are you sure you want to remove this avatar?');
+    if (!confirmed) return;
+
+    setAvatarUrl(null);
+    checkChanges(role, roomId, null);
+    showSuccess('Avatar removed! Click Save to apply changes.');
   };
 
   const handleSave = async () => {
@@ -89,6 +156,7 @@ export default function UserEditForm({ user, rooms, currentUserId }: UserEditFor
         body: JSON.stringify({
           role,
           roomId: roomId || null,
+          avatarUrl: avatarUrl || null,
         }),
       });
 
@@ -259,28 +327,62 @@ export default function UserEditForm({ user, rooms, currentUserId }: UserEditFor
 
         {/* Right Column - Avatar & Stats */}
         <div className="space-y-6">
-          {/* Avatar Preview */}
+          {/* Avatar Upload */}
           <AnimatedCard className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
             <h2 className="mb-4 text-xl font-semibold text-gray-900 dark:text-white">
               Profile Picture
             </h2>
-            <div className="flex flex-col items-center">
-              {user.avatarUrl ? (
+            
+            <div className="flex flex-col items-center space-y-4">
+              {/* Avatar Preview */}
+              {avatarUrl ? (
                 <img
-                  src={user.avatarUrl}
+                  src={avatarUrl}
                   alt={user.name || user.email}
-                  className="h-32 w-32 rounded-full object-cover"
+                  className="h-32 w-32 rounded-full object-cover ring-4 ring-gray-200 dark:ring-gray-700"
                 />
               ) : (
-                <div className="flex h-32 w-32 items-center justify-center rounded-full bg-gray-200 dark:bg-gray-700">
-                  <span className="text-4xl text-gray-500 dark:text-gray-400">
+                <div className="flex h-32 w-32 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-purple-600 ring-4 ring-gray-200 dark:ring-gray-700">
+                  <span className="text-4xl font-bold text-white">
                     {(user.name || user.email).charAt(0).toUpperCase()}
                   </span>
                 </div>
               )}
-              <p className="mt-4 text-center text-sm text-gray-600 dark:text-gray-400">
-                Users can manage their avatar from their profile page
-              </p>
+
+              {/* Upload Controls */}
+              <div className="flex flex-col items-center space-y-2">
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/jpeg,image/png,image/webp,image/jpg"
+                  onChange={handleFileChange}
+                  className="hidden"
+                  disabled={uploading || saving}
+                />
+                <button
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={uploading || saving}
+                  className="w-full rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  {uploading ? 'Uploading...' : 'Upload New Photo'}
+                </button>
+                
+                {avatarUrl && (
+                  <button
+                    onClick={handleRemoveAvatar}
+                    disabled={uploading || saving}
+                    className="w-full rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-red-700 disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    Remove Photo
+                  </button>
+                )}
+                
+                <p className="text-center text-xs text-gray-500 dark:text-gray-400">
+                  JPG, PNG or WebP. Max 2MB.
+                  <br />
+                  Changes require clicking Save.
+                </p>
+              </div>
             </div>
           </AnimatedCard>
 

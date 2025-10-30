@@ -72,10 +72,12 @@ export default async function DashboardPage() {
               <QuickAction href="/dashboard/rooms" label="Manage Rooms" icon="🏠" />
               <QuickAction href="/dashboard/products" label="Manage Products" icon="📦" />
               <QuickAction href="/dashboard/users" label="Manage Users" icon="👥" />
+              <QuickAction href="/dashboard/room-management" label="Room Management" icon="🔄" />
             </>
           )}
           {dbUser.role === 'WORKER' && (
             <>
+              <QuickAction href="/dashboard/room-management" label="Room Management" icon="🔄" />
               <QuickAction href="/dashboard/assign" label="Assign Clients" icon="👤" />
               <QuickAction href="/dashboard/inventory" label="Manage Inventory" icon="📊" />
             </>

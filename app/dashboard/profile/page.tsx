@@ -11,9 +11,20 @@ export default async function ProfilePage() {
     redirect('/login');
   }
 
-  // Get user from database
+  // Get user from database with purchases
   const user = await prisma.user.findUnique({
     where: { supabaseId: authUser.id },
+    include: {
+      Purchase: {
+        include: {
+          Product: true,
+        },
+        orderBy: {
+          createdAt: 'desc',
+        },
+        take: 10,
+      },
+    },
   });
 
   if (!user) {
@@ -29,7 +40,7 @@ export default async function ProfilePage() {
         </p>
       </div>
 
-      <ProfileClient user={user} />
+      <ProfileClient user={user} purchases={user.Purchase} />
     </div>
   );
 }

@@ -15,6 +15,13 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const dbUser = await prisma.user.findUnique({
     where: { supabaseId: user.id },
+    include: {
+      Room: {
+        select: {
+          name: true,
+        },
+      },
+    },
   });
 
   if (!dbUser) {
@@ -23,7 +30,12 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Navbar userRole={dbUser.role} avatarUrl={dbUser.avatarUrl} userName={dbUser.name} />
+      <Navbar 
+        userRole={dbUser.role} 
+        avatarUrl={dbUser.avatarUrl} 
+        userName={dbUser.name}
+        roomName={dbUser.Room?.name}
+      />
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">{children}</main>
     </div>
   );
