@@ -86,6 +86,7 @@ model User {
   role       UserRole   @default(CLIENT)
   supabaseId String     @unique
   roomId     String?
+  avatarUrl  String?
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @default(now())
   Purchase   Purchase[]

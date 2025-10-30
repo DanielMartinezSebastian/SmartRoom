@@ -6,9 +6,11 @@ import { createClient } from '@/lib/supabase/client';
 
 interface NavbarProps {
   userRole?: 'ADMIN' | 'WORKER' | 'CLIENT';
+  avatarUrl?: string | null;
+  userName?: string | null;
 }
 
-export default function Navbar({ userRole }: NavbarProps) {
+export default function Navbar({ userRole, avatarUrl, userName }: NavbarProps) {
   const router = useRouter();
 
   const handleLogout = async () => {
@@ -75,7 +77,26 @@ export default function Navbar({ userRole }: NavbarProps) {
               )}
             </div>
           </div>
-          <div className="flex items-center">
+          <div className="flex items-center space-x-4">
+            <Link
+              href="/dashboard/profile"
+              className="flex items-center space-x-2 rounded-lg px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700"
+            >
+              {avatarUrl ? (
+                <img
+                  src={avatarUrl}
+                  alt="Profile"
+                  className="h-8 w-8 rounded-full object-cover"
+                />
+              ) : (
+                <div className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-white">
+                  <span className="text-sm font-semibold">
+                    {userName?.charAt(0)?.toUpperCase() || 'U'}
+                  </span>
+                </div>
+              )}
+              <span>Profile</span>
+            </Link>
             <button
               onClick={handleLogout}
               className="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white hover:bg-red-700"
