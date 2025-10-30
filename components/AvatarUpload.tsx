@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
+import { showDestructiveConfirm } from '@/lib/toast';
 
 interface AvatarUploadProps {
   userId: string;
@@ -99,7 +100,9 @@ export default function AvatarUpload({ userId, currentAvatarUrl, userRole, onSuc
   };
 
   const handleRemoveAvatar = async () => {
-    if (!confirm('Are you sure you want to remove your avatar?')) return;
+    const confirmed = await showDestructiveConfirm('Are you sure you want to remove your avatar?');
+    
+    if (!confirmed) return;
 
     setUploading(true);
     setError('');

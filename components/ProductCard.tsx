@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import AnimatedCard from '@/components/AnimatedCard';
 import { formatCurrency } from '@/lib/utils';
+import { showSuccess, showError } from '@/lib/toast';
 
 interface Product {
   id: string;
@@ -38,10 +39,10 @@ export default function ProductCard({ product, index }: ProductCardProps) {
         throw new Error('Failed to make purchase');
       }
 
-      alert('Purchase successful!');
+      showSuccess('Purchase successful!');
       setQuantity(1);
     } catch (error: any) {
-      alert(error.message || 'Failed to make purchase');
+      showError(error.message || 'Failed to make purchase');
     } finally {
       setLoading(false);
     }

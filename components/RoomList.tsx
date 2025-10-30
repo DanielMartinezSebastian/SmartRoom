@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import AnimatedCard from '@/components/AnimatedCard';
 import { formatDate } from '@/lib/utils';
+import { showSuccess, showError, showDestructiveConfirm } from '@/lib/toast';
 
 type Room = {
   id: string;
@@ -101,17 +102,21 @@ export default function RoomList({ initialRooms }: RoomListProps) {
       setRooms(updatedRooms);
 
       setShowModal(false);
-      alert(editingRoom ? 'Room updated successfully!' : 'Room created successfully!');
+      showSuccess(editingRoom ? 'Room updated successfully!' : 'Room created successfully!');
     } catch (error) {
       console.error('Error saving room:', error);
-      alert(error instanceof Error ? error.message : 'Failed to save room');
+      showError(error instanceof Error ? error.message : 'Failed to save room');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (roomId: string, roomName: string) => {
-    if (!confirm(`Are you sure you want to delete the room "${roomName}"? This action cannot be undone.`)) {
+    const confirmed = await showDestructiveConfirm(
+      `Are you sure you want to delete the room "${roomName}"? This action cannot be undone.`
+    );
+    
+    if (!confirmed) {
       return;
     }
 
@@ -127,10 +132,10 @@ export default function RoomList({ initialRooms }: RoomListProps) {
       }
 
       setRooms(rooms.filter((r) => r.id !== roomId));
-      alert('Room deleted successfully!');
+      showSuccess('Room deleted successfully!');
     } catch (error) {
       console.error('Error deleting room:', error);
-      alert(error instanceof Error ? error.message : 'Failed to delete room');
+      showError(error instanceof Error ? error.message : 'Failed to delete room');
     } finally {
       setLoading(false);
     }

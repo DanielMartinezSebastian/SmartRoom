@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import AnimatedCard from '@/components/AnimatedCard';
 import { formatDate } from '@/lib/utils';
+import { showSuccess, showError, showDestructiveConfirm } from '@/lib/toast';
 
 type User = {
   id: string;
@@ -100,17 +101,21 @@ export default function UserList({ initialUsers, rooms }: UserListProps) {
       setUsers(updatedUsers);
 
       setShowModal(false);
-      alert('User updated successfully!');
+      showSuccess('User updated successfully!');
     } catch (error) {
       console.error('Error updating user:', error);
-      alert(error instanceof Error ? error.message : 'Failed to update user');
+      showError(error instanceof Error ? error.message : 'Failed to update user');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (userId: string, userEmail: string) => {
-    if (!confirm(`Are you sure you want to delete user "${userEmail}"? This action cannot be undone.`)) {
+    const confirmed = await showDestructiveConfirm(
+      `Are you sure you want to delete user "${userEmail}"? This action cannot be undone.`
+    );
+    
+    if (!confirmed) {
       return;
     }
 
@@ -126,10 +131,10 @@ export default function UserList({ initialUsers, rooms }: UserListProps) {
       }
 
       setUsers(users.filter((u) => u.id !== userId));
-      alert('User deleted successfully!');
+      showSuccess('User deleted successfully!');
     } catch (error) {
       console.error('Error deleting user:', error);
-      alert(error instanceof Error ? error.message : 'Failed to delete user');
+      showError(error instanceof Error ? error.message : 'Failed to delete user');
     } finally {
       setLoading(false);
     }
