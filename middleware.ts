@@ -36,9 +36,17 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getSession();
 
   const isAuthPage =
-    request.nextUrl.pathname.startsWith('/login') || request.nextUrl.pathname.startsWith('/signup');
+    request.nextUrl.pathname.startsWith('/login') || 
+    request.nextUrl.pathname.startsWith('/signup') ||
+    request.nextUrl.pathname.startsWith('/forgot-password');
   const isDashboard = request.nextUrl.pathname.startsWith('/dashboard');
   const isClient = request.nextUrl.pathname.startsWith('/client');
+  const isResetPassword = request.nextUrl.pathname.startsWith('/reset-password');
+
+  // Allow reset-password page without session check (uses token in URL)
+  if (isResetPassword) {
+    return response;
+  }
 
   // Redirect to login if not authenticated and trying to access protected routes
   if (!session && (isDashboard || isClient)) {
@@ -54,5 +62,5 @@ export async function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ['/dashboard/:path*', '/client/:path*', '/login', '/signup'],
+  matcher: ['/dashboard/:path*', '/client/:path*', '/login', '/signup', '/forgot-password', '/reset-password'],
 };
