@@ -59,7 +59,7 @@ export default function UserCard({ user, isDragging = false }: UserCardProps) {
       {...attributes}
       {...listeners}
       className={`group cursor-move rounded-lg border bg-white p-3 shadow-sm transition-all hover:shadow-md dark:bg-gray-800 dark:border-gray-700 ${
-        isDragging ? 'opacity-50' : ''
+        isDragging ? 'opacity-80 scale-105 shadow-2xl ring-1 ring-blue-500' : ''
       }`}
     >
       <div className="flex items-center gap-3">
