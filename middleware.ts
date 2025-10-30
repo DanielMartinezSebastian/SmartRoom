@@ -31,6 +31,12 @@ export async function middleware(request: NextRequest) {
     }
   );
 
+  // Handle auth code exchange (for password reset and email confirmation)
+  const code = request.nextUrl.searchParams.get('code');
+  if (code) {
+    await supabase.auth.exchangeCodeForSession(code);
+  }
+
   const {
     data: { session },
   } = await supabase.auth.getSession();

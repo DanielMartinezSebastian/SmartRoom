@@ -19,28 +19,34 @@ export default function ResetPasswordPage() {
   useEffect(() => {
     const verifyToken = async () => {
       try {
-        // Check for code in query params (email link format)
-        const code = searchParams.get('code');
+        const supabase = createClient();
         
-        if (code) {
-          const supabase = createClient();
-          
-          // Exchange the code for a session
-          const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code);
-          
-          if (exchangeError) {
-            console.error('Error exchanging code:', exchangeError);
-            setHasValidToken(false);
-          } else {
-            setHasValidToken(true);
-          }
+        // Check if user is authenticated (Supabase handles the code exchange automatically via middleware)
+        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+        
+        if (session) {
+          // User is authenticated, allow password reset
+          setHasValidToken(true);
         } else {
-          // Check if we have a recovery token in the hash (legacy format)
-          const hashParams = new URLSearchParams(window.location.hash.substring(1));
-          const accessToken = hashParams.get('access_token');
-          const type = hashParams.get('type');
+          // Check if there's a code in the URL (not yet processed)
+          const code = searchParams.get('code');
           
-          setHasValidToken(!!(accessToken && type === 'recovery'));
+          if (code) {
+            // The code exists but hasn't been exchanged yet
+            // This should be handled by middleware, so we'll wait a moment
+            await new Promise(resolve => setTimeout(resolve, 1000));
+            
+            // Check session again
+            const { data: { session: retrySession } } = await supabase.auth.getSession();
+            setHasValidToken(!!retrySession);
+          } else {
+            // Check for legacy hash format
+            const hashParams = new URLSearchParams(window.location.hash.substring(1));
+            const accessToken = hashParams.get('access_token');
+            const type = hashParams.get('type');
+            
+            setHasValidToken(!!(accessToken && type === 'recovery'));
+          }
         }
       } catch (err) {
         console.error('Token verification error:', err);
