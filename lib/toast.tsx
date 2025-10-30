@@ -34,7 +34,7 @@ export const showInfo = (message: string) => {
 /**
  * Show a loading notification and return the toast ID
  */
-export const showLoading = (message: string) => {
+export const showLoading = (message: string): string => {
   return toast.loading(message, {
     position: 'top-right',
   });
@@ -43,7 +43,7 @@ export const showLoading = (message: string) => {
 /**
  * Update a loading toast to success
  */
-export const updateToSuccess = (toastId: string, message: string) => {
+export const updateToSuccess = (toastId: string, message: string): void => {
   toast.success(message, {
     id: toastId,
     duration: 3000,
@@ -53,7 +53,7 @@ export const updateToSuccess = (toastId: string, message: string) => {
 /**
  * Update a loading toast to error
  */
-export const updateToError = (toastId: string, message: string) => {
+export const updateToError = (toastId: string, message: string): void => {
   toast.error(message, {
     id: toastId,
     duration: 4000,

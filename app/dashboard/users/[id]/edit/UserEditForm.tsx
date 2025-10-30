@@ -7,7 +7,7 @@ import UserRoleSelector from '@/components/UserManagement/UserRoleSelector';
 import UserRoomAssignment from '@/components/UserManagement/UserRoomAssignment';
 import UserStats from '@/components/UserManagement/UserStats';
 import { formatDate } from '@/lib/utils';
-import { showError, showDestructiveConfirm, showLoading, updateToSuccess, updateToError } from '@/lib/toast';
+import { showError, showConfirm, showDestructiveConfirm, showLoading, updateToSuccess, updateToError } from '@/lib/toast';
 
 type User = {
   id: string;
@@ -143,9 +143,14 @@ export default function UserEditForm({ user, rooms, currentUserId }: UserEditFor
     }
   };
 
-  const handleCancel = () => {
+  const handleCancel = async () => {
     if (hasChanges) {
-      if (window.confirm('You have unsaved changes. Are you sure you want to leave?')) {
+      const confirmed = await showConfirm(
+        'You have unsaved changes. Are you sure you want to leave?',
+        'Leave',
+        'Stay'
+      );
+      if (confirmed) {
         router.push('/dashboard/users');
       }
     } else {
