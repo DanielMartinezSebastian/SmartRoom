@@ -38,6 +38,8 @@ Add these policies to allow authenticated users to upload and read avatars:
 
 ```sql
 -- Policy for uploading avatars (only ADMIN and WORKER)
+-- Note: This policy uses Supabase's built-in auth and custom claims
+-- You'll need to add custom claims for user roles in your Supabase auth setup
 CREATE POLICY "Allow authenticated uploads for ADMIN/WORKER"
 ON storage.objects FOR INSERT
 TO authenticated
@@ -61,6 +63,8 @@ USING (
   (storage.foldername(name))[1] = 'avatars'
 );
 ```
+
+**Security Note**: The storage policies above allow any authenticated user to upload/delete. The application enforces role-based restrictions (ADMIN/WORKER only) at the API level through the `/api/users/[id]/avatar` endpoint. For additional security, consider implementing custom claims in Supabase Auth to enforce role checks at the storage policy level.
 
 ## Email Configuration for Password Reset
 
