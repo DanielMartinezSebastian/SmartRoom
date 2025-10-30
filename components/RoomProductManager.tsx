@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import AnimatedCard from '@/components/AnimatedCard';
 import { formatCurrency } from '@/lib/utils';
+import { showSuccess, showError, showDestructiveConfirm } from '@/lib/toast';
 
 type Product = {
   id: string;
@@ -86,10 +87,10 @@ export default function RoomProductManager({ room, allProducts }: RoomProductMan
       setShowAddModal(false);
       setSelectedProductId('');
       setAddStock(10);
-      alert('Product added successfully!');
+      showSuccess('Product added successfully!');
     } catch (error) {
       console.error('Error adding product:', error);
-      alert(error instanceof Error ? error.message : 'Failed to add product');
+      showError(error instanceof Error ? error.message : 'Failed to add product');
     } finally {
       setLoading(false);
     }
@@ -132,17 +133,21 @@ export default function RoomProductManager({ room, allProducts }: RoomProductMan
       );
 
       setEditingProduct(null);
-      alert('Product updated successfully!');
+      showSuccess('Product updated successfully!');
     } catch (error) {
       console.error('Error updating product:', error);
-      alert(error instanceof Error ? error.message : 'Failed to update product');
+      showError(error instanceof Error ? error.message : 'Failed to update product');
     } finally {
       setLoading(false);
     }
   };
 
   const handleRemoveProduct = async (rpId: string, productName: string) => {
-    if (!confirm(`Remove "${productName}" from this room? This action cannot be undone.`)) {
+    const confirmed = await showDestructiveConfirm(
+      `Remove "${productName}" from this room? This action cannot be undone.`
+    );
+    
+    if (!confirmed) {
       return;
     }
 
@@ -158,10 +163,10 @@ export default function RoomProductManager({ room, allProducts }: RoomProductMan
       }
 
       setRoomProducts(roomProducts.filter((rp) => rp.id !== rpId));
-      alert('Product removed successfully!');
+      showSuccess('Product removed successfully!');
     } catch (error) {
       console.error('Error removing product:', error);
-      alert(error instanceof Error ? error.message : 'Failed to remove product');
+      showError(error instanceof Error ? error.message : 'Failed to remove product');
     } finally {
       setLoading(false);
     }

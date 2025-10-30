@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import AnimatedCard from '@/components/AnimatedCard';
 import { formatDate } from '@/lib/utils';
+import { showSuccess, showError, showDestructiveConfirm } from '@/lib/toast';
 
 type User = {
   id: string;
@@ -26,32 +28,25 @@ type User = {
   }>;
 };
 
-type Room = {
-  id: string;
-  name: string;
-};
-
 interface UserListProps {
   initialUsers: User[];
-  rooms: Room[];
 }
 
-export default function UserList({ initialUsers, rooms }: UserListProps) {
+export default function UserList({ initialUsers }: UserListProps) {
   const [users, setUsers] = useState<User[]>(initialUsers);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState<'all' | 'ADMIN' | 'WORKER' | 'CLIENT'>('all');
   const [filterRoom, setFilterRoom] = useState('all');
-  const [editingUser, setEditingUser] = useState<User | null>(null);
-  const [showModal, setShowModal] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  const [formData, setFormData] = useState<{
-    role: 'ADMIN' | 'WORKER' | 'CLIENT';
-    roomId: string;
-  }>({
-    role: 'CLIENT',
-    roomId: '',
-  });
+  // Extract unique rooms from users
+  const availableRooms = Array.from(
+    new Map(
+      users
+        .filter((u) => u.Room)
+        .map((u) => [u.Room!.id, u.Room!])
+    ).values()
+  );
 
   const filteredUsers = users.filter((user) => {
     const matchesSearch =
@@ -65,52 +60,12 @@ export default function UserList({ initialUsers, rooms }: UserListProps) {
     return matchesSearch && matchesRole && matchesRoom;
   });
 
-  const openEditModal = (user: User) => {
-    setEditingUser(user);
-    setFormData({
-      role: user.role,
-      roomId: user.roomId || '',
-    });
-    setShowModal(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!editingUser) return;
-
-    setLoading(true);
-    try {
-      const response = await fetch(`/api/users/${editingUser.id}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          role: formData.role,
-          roomId: formData.roomId || null,
-        }),
-      });
-
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.error || 'Failed to update user');
-      }
-
-      // Refresh the list
-      const usersResponse = await fetch('/api/users');
-      const updatedUsers = await usersResponse.json();
-      setUsers(updatedUsers);
-
-      setShowModal(false);
-      alert('User updated successfully!');
-    } catch (error) {
-      console.error('Error updating user:', error);
-      alert(error instanceof Error ? error.message : 'Failed to update user');
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const handleDelete = async (userId: string, userEmail: string) => {
-    if (!confirm(`Are you sure you want to delete user "${userEmail}"? This action cannot be undone.`)) {
+    const confirmed = await showDestructiveConfirm(
+      `Are you sure you want to delete user "${userEmail}"? This action cannot be undone.`
+    );
+    
+    if (!confirmed) {
       return;
     }
 
@@ -126,10 +81,10 @@ export default function UserList({ initialUsers, rooms }: UserListProps) {
       }
 
       setUsers(users.filter((u) => u.id !== userId));
-      alert('User deleted successfully!');
+      showSuccess('User deleted successfully!');
     } catch (error) {
       console.error('Error deleting user:', error);
-      alert(error instanceof Error ? error.message : 'Failed to delete user');
+      showError(error instanceof Error ? error.message : 'Failed to delete user');
     } finally {
       setLoading(false);
     }
@@ -179,7 +134,7 @@ export default function UserList({ initialUsers, rooms }: UserListProps) {
           >
             <option value="all">All Rooms</option>
             <option value="none">No Room</option>
-            {rooms.map((room) => (
+            {availableRooms.map((room) => (
               <option key={room.id} value={room.id}>
                 {room.name}
               </option>
@@ -258,13 +213,12 @@ export default function UserList({ initialUsers, rooms }: UserListProps) {
                           {formatDate(user.createdAt)}
                         </td>
                         <td className="px-6 py-4 text-right text-sm">
-                          <button
-                            onClick={() => openEditModal(user)}
-                            disabled={loading}
-                            className="mr-2 text-blue-600 hover:text-blue-900 disabled:cursor-not-allowed disabled:opacity-50 dark:text-blue-400 dark:hover:text-blue-300"
+                          <Link
+                            href={`/dashboard/users/${user.id}/edit`}
+                            className="mr-2 text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
                           >
                             Edit
-                          </button>
+                          </Link>
                           <button
                             onClick={() => handleDelete(user.id, user.email)}
                             disabled={loading}
@@ -324,13 +278,12 @@ export default function UserList({ initialUsers, rooms }: UserListProps) {
                     </div>
                   </div>
                   <div className="flex gap-2 pt-2">
-                    <button
-                      onClick={() => openEditModal(user)}
-                      disabled={loading}
-                      className="flex-1 rounded-lg border-2 border-blue-600 px-3 py-2 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-700"
+                    <Link
+                      href={`/dashboard/users/${user.id}/edit`}
+                      className="flex-1 rounded-lg border-2 border-blue-600 px-3 py-2 text-center text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50 dark:hover:bg-gray-700"
                     >
                       Edit
-                    </button>
+                    </Link>
                     <button
                       onClick={() => handleDelete(user.id, user.email)}
                       disabled={loading}
@@ -342,79 +295,6 @@ export default function UserList({ initialUsers, rooms }: UserListProps) {
                 </div>
               </AnimatedCard>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* Edit Modal */}
-      {showModal && editingUser && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-          <div className="w-full max-w-md rounded-lg bg-white p-6 shadow-xl dark:bg-gray-800">
-            <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">Edit User</h2>
-            <div className="mb-4 rounded-lg bg-gray-100 p-3 dark:bg-gray-700">
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-medium">Email:</span> {editingUser.email}
-              </p>
-              <p className="text-sm text-gray-600 dark:text-gray-400">
-                <span className="font-medium">Name:</span> {editingUser.name || 'No name'}
-              </p>
-            </div>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Role *
-                </label>
-                <select
-                  required
-                  value={formData.role}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      role: e.target.value as 'ADMIN' | 'WORKER' | 'CLIENT',
-                    })
-                  }
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="CLIENT">Client</option>
-                  <option value="WORKER">Worker</option>
-                  <option value="ADMIN">Admin</option>
-                </select>
-              </div>
-              <div>
-                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
-                  Assign Room
-                </label>
-                <select
-                  value={formData.roomId}
-                  onChange={(e) => setFormData({ ...formData, roomId: e.target.value })}
-                  className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
-                >
-                  <option value="">No Room</option>
-                  {rooms.map((room) => (
-                    <option key={room.id} value={room.id}>
-                      {room.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex gap-3 pt-4">
-                <button
-                  type="button"
-                  onClick={() => setShowModal(false)}
-                  disabled={loading}
-                  className="flex-1 rounded-lg border-2 border-gray-300 px-4 py-2 font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="flex-1 rounded-lg bg-blue-600 px-4 py-2 font-semibold text-white transition-colors hover:bg-blue-700 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  {loading ? 'Updating...' : 'Update'}
-                </button>
-              </div>
-            </form>
           </div>
         </div>
       )}

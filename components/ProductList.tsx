@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import AnimatedCard from '@/components/AnimatedCard';
 import { formatCurrency, formatDate } from '@/lib/utils';
+import { showSuccess, showError, showDestructiveConfirm } from '@/lib/toast';
 
 type Product = {
   id: string;
@@ -113,17 +114,21 @@ export default function ProductList({ initialProducts }: ProductListProps) {
       setProducts(updatedProducts);
 
       setShowModal(false);
-      alert(editingProduct ? 'Product updated successfully!' : 'Product created successfully!');
+      showSuccess(editingProduct ? 'Product updated successfully!' : 'Product created successfully!');
     } catch (error) {
       console.error('Error saving product:', error);
-      alert(error instanceof Error ? error.message : 'Failed to save product');
+      showError(error instanceof Error ? error.message : 'Failed to save product');
     } finally {
       setLoading(false);
     }
   };
 
   const handleDelete = async (productId: string, productName: string) => {
-    if (!confirm(`Are you sure you want to delete "${productName}"? This action cannot be undone.`)) {
+    const confirmed = await showDestructiveConfirm(
+      `Are you sure you want to delete "${productName}"? This action cannot be undone.`
+    );
+    
+    if (!confirmed) {
       return;
     }
 
@@ -139,10 +144,10 @@ export default function ProductList({ initialProducts }: ProductListProps) {
       }
 
       setProducts(products.filter((p) => p.id !== productId));
-      alert('Product deleted successfully!');
+      showSuccess('Product deleted successfully!');
     } catch (error) {
       console.error('Error deleting product:', error);
-      alert(error instanceof Error ? error.message : 'Failed to delete product');
+      showError(error instanceof Error ? error.message : 'Failed to delete product');
     } finally {
       setLoading(false);
     }
