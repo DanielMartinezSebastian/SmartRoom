@@ -11,6 +11,7 @@ export async function GET(request: NextRequest) {
       where: role ? { role: role as any } : undefined,
       include: {
         Room: true,
+        Purchase: true,
       },
       orderBy: { createdAt: 'desc' },
     });

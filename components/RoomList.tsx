@@ -8,6 +8,7 @@ type Room = {
   id: string;
   name: string;
   description: string | null;
+  imageUrl: string | null;
   capacity: number;
   isActive: boolean;
   createdAt: Date;
@@ -43,6 +44,7 @@ export default function RoomList({ initialRooms }: RoomListProps) {
   const [formData, setFormData] = useState({
     name: '',
     description: '',
+    imageUrl: '',
     capacity: 1,
     isActive: true,
   });
@@ -58,7 +60,7 @@ export default function RoomList({ initialRooms }: RoomListProps) {
 
   const openCreateModal = () => {
     setEditingRoom(null);
-    setFormData({ name: '', description: '', capacity: 1, isActive: true });
+    setFormData({ name: '', description: '', imageUrl: '', capacity: 1, isActive: true });
     setShowModal(true);
   };
 
@@ -67,6 +69,7 @@ export default function RoomList({ initialRooms }: RoomListProps) {
     setFormData({
       name: room.name,
       description: room.description || '',
+      imageUrl: room.imageUrl || '',
       capacity: room.capacity,
       isActive: room.isActive,
     });
@@ -180,9 +183,18 @@ export default function RoomList({ initialRooms }: RoomListProps) {
             <AnimatedCard
               key={room.id}
               delay={index * 0.1}
-              className="rounded-lg bg-white p-6 shadow-lg dark:bg-gray-800"
+              className="rounded-lg bg-white shadow-lg dark:bg-gray-800 overflow-hidden"
             >
-              <div className="space-y-4">
+              {room.imageUrl && (
+                <div className="relative h-48 w-full">
+                  <img
+                    src={room.imageUrl}
+                    alt={room.name}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              )}
+              <div className="p-6 space-y-4">
                 <div className="flex items-start justify-between">
                   <div className="flex-1">
                     <h3 className="text-xl font-bold text-gray-900 dark:text-white">{room.name}</h3>
@@ -233,15 +245,15 @@ export default function RoomList({ initialRooms }: RoomListProps) {
                 <div className="space-y-2 pt-4">
                   <a
                     href={`/dashboard/rooms/${room.id}`}
-                    className="block w-full rounded-lg border-2 border-green-600 px-3 py-2 text-center text-sm font-semibold text-green-600 transition-colors hover:bg-green-50 dark:hover:bg-gray-700"
+                    className="block w-full rounded-lg bg-blue-600 px-3 py-2 text-center text-sm font-semibold text-white transition-colors hover:bg-blue-700"
                   >
-                    Manage Products
+                    View Details →
                   </a>
                   <div className="flex gap-2">
                     <button
                       onClick={() => openEditModal(room)}
                       disabled={loading}
-                      className="flex-1 rounded-lg border-2 border-blue-600 px-3 py-2 text-sm font-semibold text-blue-600 transition-colors hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-50 dark:hover:bg-gray-700"
+                      className="flex-1 rounded-lg border-2 border-gray-300 px-3 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700"
                     >
                       Edit
                     </button>
@@ -288,6 +300,18 @@ export default function RoomList({ initialRooms }: RoomListProps) {
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   rows={3}
+                  className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
+                />
+              </div>
+              <div>
+                <label className="mb-1 block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Image URL
+                </label>
+                <input
+                  type="url"
+                  placeholder="https://example.com/image.jpg"
+                  value={formData.imageUrl}
+                  onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
                   className="w-full rounded-lg border border-gray-300 px-4 py-2 dark:border-gray-600 dark:bg-gray-700 dark:text-white"
                 />
               </div>

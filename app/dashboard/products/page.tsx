@@ -6,18 +6,18 @@ import ProductList from '@/components/ProductList';
 export default async function ProductsPage() {
   const supabase = await createClient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     redirect('/login');
   }
 
-  const user = await prisma.user.findUnique({
-    where: { supabaseId: session.user.id },
+  const dbUser = await prisma.user.findUnique({
+    where: { supabaseId: user.id },
   });
 
-  if (!user || user.role !== 'ADMIN') {
+  if (!dbUser || dbUser.role !== 'ADMIN') {
     redirect('/dashboard');
   }
 

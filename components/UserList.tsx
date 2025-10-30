@@ -17,7 +17,7 @@ type User = {
     id: string;
     name: string;
   } | null;
-  Purchase: Array<{
+  Purchase?: Array<{
     id: string;
     totalPrice: number;
     Product: {
@@ -252,7 +252,7 @@ export default function UserList({ initialUsers, rooms }: UserListProps) {
                           {user.Room ? user.Room.name : '-'}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-900 dark:text-white">
-                          {user.Purchase.length}
+                          {user.Purchase?.length || 0}
                         </td>
                         <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                           {formatDate(user.createdAt)}
@@ -313,7 +313,7 @@ export default function UserList({ initialUsers, rooms }: UserListProps) {
                     <div className="flex justify-between">
                       <span className="text-gray-600 dark:text-gray-400">Purchases:</span>
                       <span className="font-medium text-gray-900 dark:text-white">
-                        {user.Purchase.length}
+                        {user.Purchase?.length || 0}
                       </span>
                     </div>
                     <div className="flex justify-between">
