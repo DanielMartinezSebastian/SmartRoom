@@ -9,9 +9,10 @@ interface NavbarProps {
   userRole?: 'ADMIN' | 'WORKER' | 'CLIENT';
   avatarUrl?: string | null;
   userName?: string | null;
+  roomName?: string | null;
 }
 
-export default function Navbar({ userRole, avatarUrl, userName }: NavbarProps) {
+export default function Navbar({ userRole, avatarUrl, userName, roomName }: NavbarProps) {
   const router = useRouter();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
@@ -84,7 +85,7 @@ export default function Navbar({ userRole, avatarUrl, userName }: NavbarProps) {
                   href="/client"
                   className="inline-flex items-center border-b-2 border-transparent px-1 pt-1 text-sm font-medium text-gray-500 hover:border-gray-300 hover:text-gray-700 dark:text-gray-300 dark:hover:text-white"
                 >
-                  My Room
+                  {roomName || 'My Room'}
                 </Link>
               )}
             </div>
@@ -203,7 +204,7 @@ export default function Navbar({ userRole, avatarUrl, userName }: NavbarProps) {
                 className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-gray-500 hover:border-gray-300 hover:bg-gray-50 hover:text-gray-700 dark:text-gray-300 dark:hover:bg-gray-700 dark:hover:text-white"
                 onClick={() => setMobileMenuOpen(false)}
               >
-                My Room
+                {roomName || 'My Room'}
               </Link>
             )}
           </div>
