@@ -6,18 +6,18 @@ import Navbar from '@/components/Navbar';
 export default async function ClientLayout({ children }: { children: React.ReactNode }) {
   const supabase = await createClient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     redirect('/login');
   }
 
-  const user = await prisma.user.findUnique({
-    where: { supabaseId: session.user.id },
+  const dbUser = await prisma.user.findUnique({
+    where: { supabaseId: user.id },
   });
 
-  if (!user || user.role !== 'CLIENT') {
+  if (!dbUser || dbUser.role !== 'CLIENT') {
     redirect('/dashboard');
   }
 

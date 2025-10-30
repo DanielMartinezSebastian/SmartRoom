@@ -6,39 +6,39 @@ import AnimatedCard from '@/components/AnimatedCard';
 export default async function DashboardPage() {
   const supabase = await createClient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  if (!session) {
-    redirect('/login');
-  }
-
-  const user = await prisma.user.findUnique({
-    where: { supabaseId: session.user.id },
-    include: {
-      Room: true,
-    },
-  });
+    data: { user },
+  } = await supabase.auth.getUser();
 
   if (!user) {
     redirect('/login');
   }
 
+  const dbUser = await prisma.user.findUnique({
+    where: { supabaseId: user.id },
+    include: {
+      Room: true,
+    },
+  });
+
+  if (!dbUser) {
+    redirect('/login');
+  }
+
   // Redirect based on role
-  if (user.role === 'CLIENT') {
+  if (dbUser.role === 'CLIENT') {
     redirect('/client');
   }
 
-  const stats = await getStats(user.role);
+  const stats = await getStats(dbUser.role);
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Welcome back, {user.name || 'User'}!
+          Welcome back, {dbUser.name || 'User'}!
         </h1>
         <p className="mt-2 text-gray-600 dark:text-gray-400">
-          Role: <span className="font-semibold">{user.role}</span>
+          Role: <span className="font-semibold">{dbUser.role}</span>
         </p>
       </div>
 
@@ -67,14 +67,14 @@ export default async function DashboardPage() {
       <AnimatedCard delay={0.4} className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
         <h2 className="mb-4 text-xl font-bold text-gray-900 dark:text-white">Quick Actions</h2>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {user.role === 'ADMIN' && (
+          {dbUser.role === 'ADMIN' && (
             <>
               <QuickAction href="/dashboard/rooms" label="Manage Rooms" icon="🏠" />
               <QuickAction href="/dashboard/products" label="Manage Products" icon="📦" />
               <QuickAction href="/dashboard/users" label="Manage Users" icon="👥" />
             </>
           )}
-          {user.role === 'WORKER' && (
+          {dbUser.role === 'WORKER' && (
             <>
               <QuickAction href="/dashboard/assign" label="Assign Clients" icon="👤" />
               <QuickAction href="/dashboard/inventory" label="Manage Inventory" icon="📊" />

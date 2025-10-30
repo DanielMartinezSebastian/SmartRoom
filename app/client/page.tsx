@@ -7,15 +7,15 @@ import AnimatedCard from '@/components/AnimatedCard';
 export default async function ClientPage() {
   const supabase = await createClient();
   const {
-    data: { session },
-  } = await supabase.auth.getSession();
+    data: { user },
+  } = await supabase.auth.getUser();
 
-  if (!session) {
+  if (!user) {
     redirect('/login');
   }
 
-  const user = await prisma.user.findUnique({
-    where: { supabaseId: session.user.id },
+  const dbUser = await prisma.user.findUnique({
+    where: { supabaseId: user.id },
     include: {
       Room: {
         include: {
@@ -41,11 +41,11 @@ export default async function ClientPage() {
     },
   });
 
-  if (!user || user.role !== 'CLIENT') {
+  if (!dbUser || dbUser.role !== 'CLIENT') {
     redirect('/dashboard');
   }
 
-  if (!user.Room) {
+  if (!dbUser.Room) {
     return (
       <div className="flex min-h-[60vh] items-center justify-center">
         <AnimatedCard className="max-w-md rounded-lg bg-white p-8 text-center shadow-lg dark:bg-gray-800">
@@ -61,21 +61,45 @@ export default async function ClientPage() {
     );
   }
 
-  const availableProducts = user.Room.RoomProduct.map((rp: any) => rp.Product);
+  const availableProducts = dbUser.Room.RoomProduct.map((rp: any) => rp.Product);
+  const room = dbUser.Room as typeof dbUser.Room & { imageUrl?: string | null };
 
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
-          Welcome, {user.name || 'Guest'}!
-        </h1>
-        <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
-          Your room: <span className="font-semibold">{user.Room.name}</span>
-        </p>
-        {user.Room.description && (
-          <p className="mt-1 text-gray-600 dark:text-gray-400">{user.Room.description}</p>
-        )}
-      </div>
+      {/* Room Header with Image */}
+      {room.imageUrl && (
+        <AnimatedCard className="overflow-hidden rounded-lg shadow-lg">
+          <div className="relative h-64 w-full md:h-80">
+            <img
+              src={room.imageUrl}
+              alt={room.name}
+              className="h-full w-full object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
+            <div className="absolute bottom-0 left-0 right-0 p-6 text-white">
+              <h1 className="text-3xl font-bold md:text-4xl">{room.name}</h1>
+              {room.description && (
+                <p className="mt-2 text-lg text-white/90">{room.description}</p>
+              )}
+            </div>
+          </div>
+        </AnimatedCard>
+      )}
+
+      {/* Welcome Section (shown if no image) */}
+      {!room.imageUrl && (
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900 dark:text-white">
+            Welcome, {dbUser.name || 'Guest'}!
+          </h1>
+          <p className="mt-2 text-lg text-gray-600 dark:text-gray-400">
+            Your room: <span className="font-semibold">{room.name}</span>
+          </p>
+          {room.description && (
+            <p className="mt-1 text-gray-600 dark:text-gray-400">{room.description}</p>
+          )}
+        </div>
+      )}
 
       {availableProducts.length === 0 ? (
         <AnimatedCard className="rounded-lg bg-white p-8 text-center shadow dark:bg-gray-800">
@@ -102,14 +126,14 @@ export default async function ClientPage() {
         </>
       )}
 
-      {user.Purchase.length > 0 && (
+      {dbUser.Purchase && dbUser.Purchase.length > 0 && (
         <AnimatedCard delay={0.5}>
           <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
             <h2 className="mb-4 text-2xl font-bold text-gray-900 dark:text-white">
               Recent Purchases
             </h2>
             <div className="space-y-3">
-              {user.Purchase.map((purchase: any) => (
+              {dbUser.Purchase.map((purchase: any) => (
                 <div
                   key={purchase.id}
                   className="flex items-center justify-between rounded-lg border border-gray-200 p-4 dark:border-gray-700"
