@@ -27,7 +27,7 @@ npm run prisma:migrate
 2. Navigate to **Storage** section
 3. Click **New Bucket**
 4. Configure the bucket:
-   - **Name**: `avatars`
+   - **Name**: `userAvatar`
    - **Public bucket**: ✅ Yes (checked)
    - **File size limit**: 2MB
    - **Allowed MIME types**: `image/jpeg`, `image/png`, `image/webp`
@@ -44,23 +44,21 @@ CREATE POLICY "Allow authenticated uploads for ADMIN/WORKER"
 ON storage.objects FOR INSERT
 TO authenticated
 WITH CHECK (
-  bucket_id = 'avatars' AND
-  (storage.foldername(name))[1] = 'avatars'
+  bucket_id = 'userAvatar'
 );
 
 -- Policy for reading avatars (public)
 CREATE POLICY "Allow public read access"
 ON storage.objects FOR SELECT
 TO public
-USING (bucket_id = 'avatars');
+USING (bucket_id = 'userAvatar');
 
 -- Policy for deleting avatars (only ADMIN and WORKER)
 CREATE POLICY "Allow authenticated delete for ADMIN/WORKER"
 ON storage.objects FOR DELETE
 TO authenticated
 USING (
-  bucket_id = 'avatars' AND
-  (storage.foldername(name))[1] = 'avatars'
+  bucket_id = 'userAvatar'
 );
 ```
 

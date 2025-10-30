@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { createClient } from '@/lib/supabase/client';
 
 interface AvatarUploadProps {
@@ -17,6 +17,11 @@ export default function AvatarUpload({ userId, currentAvatarUrl, userRole, onSuc
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const canUpload = userRole === 'ADMIN' || userRole === 'WORKER';
+
+  // Update preview when currentAvatarUrl changes
+  useEffect(() => {
+    setPreview(currentAvatarUrl);
+  }, [currentAvatarUrl]);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -46,11 +51,11 @@ export default function AvatarUpload({ userId, currentAvatarUrl, userRole, onSuc
       // Create a unique filename
       const fileExt = file.name.split('.').pop();
       const fileName = `${userId}-${Date.now()}.${fileExt}`;
-      const filePath = `avatars/${fileName}`;
+      const filePath = `${fileName}`;
 
       // Upload to Supabase Storage
       const { error: uploadError, data } = await supabase.storage
-        .from('avatars')
+        .from('userAvatar')
         .upload(filePath, file, {
           cacheControl: '3600',
           upsert: false,
@@ -60,8 +65,10 @@ export default function AvatarUpload({ userId, currentAvatarUrl, userRole, onSuc
 
       // Get public URL
       const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
+        .from('userAvatar')
         .getPublicUrl(filePath);
+
+      console.log('Public URL generated:', publicUrl);
 
       // Update user profile with new avatar URL
       const response = await fetch(`/api/users/${userId}/avatar`, {
@@ -75,7 +82,13 @@ export default function AvatarUpload({ userId, currentAvatarUrl, userRole, onSuc
         throw new Error(errorData.error || 'Failed to update avatar');
       }
 
-      setPreview(publicUrl);
+      const updatedUser = await response.json();
+      console.log('Avatar updated successfully:', updatedUser);
+
+      // Update preview with the URL from the database
+      setPreview(updatedUser.avatarUrl);
+      
+      // Force refresh the page data
       onSuccess();
     } catch (err: any) {
       setError(err.message || 'Failed to upload avatar');
