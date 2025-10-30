@@ -238,7 +238,7 @@ export default function RoomManagementClient({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-6">
       <UserSearchBar
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
@@ -254,7 +254,8 @@ export default function RoomManagementClient({
         onDragStart={handleDragStart}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        {/* Responsive container: column on mobile, wrapped grid on larger screens */}
+        <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:flex-wrap">
           {/* Unassigned Users Column */}
           <UnassignedUsers users={filteredUnassignedUsers} />
 
@@ -264,8 +265,8 @@ export default function RoomManagementClient({
           ))}
 
           {filteredRooms.length === 0 && roomFilter !== 'all' && (
-            <div className="flex items-center justify-center p-8">
-              <p className="text-gray-500 dark:text-gray-400">
+            <div className="flex w-full items-center justify-center p-8">
+              <p className="text-center text-sm text-gray-500 dark:text-gray-400 sm:text-base">
                 No rooms match the selected filter
               </p>
             </div>
