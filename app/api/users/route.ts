@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
     const users = await prisma.user.findMany({
       where: role ? { role: role as any } : undefined,
       include: {
-        room: true,
+        Room: true,
       },
       orderBy: { createdAt: 'desc' },
     });

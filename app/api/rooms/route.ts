@@ -6,10 +6,10 @@ export async function GET() {
   try {
     const rooms = await prisma.room.findMany({
       include: {
-        clients: true,
-        products: {
+        User: true,
+        RoomProduct: {
           include: {
-            product: true,
+            Product: true,
           },
         },
       },

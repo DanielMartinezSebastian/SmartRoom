@@ -8,10 +8,10 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
     const room = await prisma.room.findUnique({
       where: { id },
       include: {
-        clients: true,
-        products: {
+        User: true,
+        RoomProduct: {
           include: {
-            product: true,
+            Product: true,
           },
         },
       },
